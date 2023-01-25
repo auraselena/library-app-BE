@@ -16,6 +16,9 @@ const UsersModel = dbSequelize.define(
     fullname: {
       type: DataTypes.STRING,
     },
+    password: {
+      type: DataTypes.STRING,
+    },
     phone: {
       type: DataTypes.STRING,
     },
