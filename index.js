@@ -4,11 +4,13 @@ const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
 const app = express();
+const bearerToken = require("express-bearer-token");
 
 const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use(cors());
+app.use(bearerToken());
 
 const { checkSequelize, dbSequelize } = require("./src/config/db");
 checkSequelize();

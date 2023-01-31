@@ -1,30 +1,45 @@
 const UsersModel = require("../models/users");
 const sequelize = require("sequelize");
 const { hashPassword, createToken } = require("../config/encript");
+const bcrypt = require("bcrypt");
+// hashpassword itu = token
+// hashpaswword --> gabisa diubah balik password semula
+// token --> bisa diubah balik password semula
 
 module.exports = {
   getData: async (req, res) => {
     try {
       let data = await UsersModel.findAll();
       return res.status(200).send(data);
-    } catch (err) {
-      console.log(err);
-      return res.status(500).send(err);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send(error);
     }
   },
   login: async (req, res) => {
     let { username, password } = req.body;
     try {
-      let data = await UsersModel.findOne({
+      let data = await UsersModel.findAll({
         where: {
           username,
-          password,
+          // password,
         },
       });
-      console.log(data);
+      console.log("cek login", data);
       // return res.status(200).send(data)
 
-      if (data.dataValues.id) {
+      // if (data.dataValues.id) {
+      if (data.length > 0) {
+        let checkPass = bcrypt.compareSync(password, data[0].dataValues.password);
+        if (checkPass) {
+          let token = createToken({ ...data[0].dataValues });
+          return res.status(200).send({ ...data[0].dataValues, token });
+        } else {
+          return res.status(200).send({
+            success: false,
+            message: "Password incorrect",
+          });
+        }
         return res.status(200).send({ ...data.dataValues });
       } else {
         return res.status(200).send({
@@ -32,9 +47,9 @@ module.exports = {
           message: "This account doesn't exists",
         });
       }
-    } catch (err) {
-      console.log(err);
-      return res.status(500).send(err);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send(error);
     }
   },
   register: async (req, res) => {
@@ -69,14 +84,31 @@ module.exports = {
             message: "Register account success",
             data: create,
           });
-        } catch (err) {
-          console.log(err);
-          return res.status(500).send(err);
+        } catch (error) {
+          console.log(error);
+          return res.status(500).send(error);
         }
       }
-    } catch (err) {
-      console.log(err);
-      return res.status(500).send(err);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send(error);
+    }
+  },
+  keeplogin: async (req, res) => {
+    console.log("cek req.decript", req.decript);
+    try {
+      let data = await UsersModel.findAll({
+        where: {
+          id: req.decript.id,
+        },
+      });
+      console.log(data);
+
+      let token = createToken({ ...data[0].dataValues });
+      return res.status(200).send({ ...data[0].dataValues, token });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send(error);
     }
   },
 };
